@@ -17,7 +17,9 @@ public class BluetoothService {
     public boolean connect(String macAddress) {
         try {
             BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-            if (adapter == null) return false;
+            if (adapter == null) {
+                return false;
+            }
             BluetoothDevice device = adapter.getRemoteDevice(macAddress);
             socket = device.createRfcommSocketToServiceRecord(UUID_FLIPPER);
             socket.connect();
@@ -25,24 +27,41 @@ public class BluetoothService {
             inputStream = socket.getInputStream();
             return true;
         } catch (IOException e) {
+            e.printStackTrace();
             return false;
         }
     }
 
+    public boolean isConnected() {
+        return socket != null && socket.isConnected();
+    }
+
     public void sendCommand(String command) throws IOException {
+        if (outputStream == null) {
+            throw new IOException("OutputStream is null. Not connected.");
+        }
         outputStream.write((command + "\r\n").getBytes());
         outputStream.flush();
     }
 
     public String readResponse() throws IOException {
+        if (inputStream == null) {
+            throw new IOException("InputStream is null. Not connected.");
+        }
         byte[] buffer = new byte[1024];
         int bytes = inputStream.read(buffer);
-        return new String(buffer, 0, bytes);
+        if (bytes > 0) {
+            return new String(buffer, 0, bytes);
+        } else {
+            return "Нет ответа";
+        }
     }
 
     public void disconnect() {
         try {
-            if (socket != null) socket.close();
+            if (socket != null) {
+                socket.close();
+            }
         } catch (IOException ignored) {}
     }
 }
