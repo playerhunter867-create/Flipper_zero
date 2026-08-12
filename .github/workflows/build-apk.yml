@@ -1,6 +1,9 @@
-name: Build PovaTools APK
+name: Build APK from ZIP
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -8,92 +11,133 @@ permissions:
 
 jobs:
   build:
+    name: Build Android APK
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Find ZIP
-        id: find_zip
-        shell: bash
-        run: |
-          ZIP=$(find . -maxdepth 2 -type f -iname "*.zip" | head -n 1)
-
-          if [ -z "$ZIP" ]; then
-            echo "ERROR: ZIP file not found."
-            exit 1
-          fi
-
-          echo "Found: $ZIP"
-          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
-
-      - name: Extract ZIP
-        shell: bash
-        run: |
-          mkdir -p extracted
-          unzip -q "${{ steps.find_zip.outputs.zip }}" -d extracted
-
-          echo "Extracted files:"
-          find extracted -maxdepth 3 -type f | head -100
-
-      - name: Find Android project
-        id: android
-        shell: bash
-        run: |
-          PROJECT=$(find extracted -type f -name "settings.gradle*" -printf '%h\n' | head -n 1)
-
-          if [ -z "$PROJECT" ]; then
-            echo ""
-            echo "ERROR: No Android/Gradle project found inside ZIP."
-            echo ""
-            echo "The ZIP must contain an Android project with:"
-            echo "  settings.gradle or settings.gradle.kts"
-            echo "  build.gradle or build.gradle.kts"
-            echo "  gradlew"
-            echo "  app/"
-            echo ""
-            exit 1
-          fi
-
-          echo "Android project: $PROJECT"
-          echo "project=$PROJECT" >> "$GITHUB_OUTPUT"
-
-      - name: Setup Java
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: '17'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Make Gradle executable
-        working-directory: ${{ steps.android.outputs.project }}
-        run: chmod +x gradlew
+      - name: Install Android SDK
+        run: |
+          yes | sdkmanager --licenses || true
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
 
-      - name: Build Debug APK
-        working-directory: ${{ steps.android.outputs.project }}
-        run: ./gradlew assembleDebug --stacktrace
-
-      - name: Find APK
-        id: apk
-        working-directory: ${{ steps.android.outputs.project }}
+      - name: Find and extract ZIP
         shell: bash
         run: |
-          APK=$(find . -type f -name "*.apk" | head -n 1)
+          set -e
+
+          ZIP=$(find . -maxdepth 2 -type f \
+            \( -iname "*.zip" \) \
+            -not -path "./.git/*" \
+            | head -n 1)
+
+          if [ -z "$ZIP" ]; then
+            echo "ERROR: No ZIP file found."
+            exit 1
+          fi
+
+          echo "Found ZIP: $ZIP"
+
+          rm -rf android-project
+          mkdir android-project
+
+          unzip -q "$ZIP" -d android-project
+
+          echo "Extracted files:"
+          find android-project -maxdepth 3 -type f | sort
+
+      - name: Locate Android project
+        shell: bash
+        run: |
+          set -e
+
+          PROJECT=$(find android-project -type f \
+            \( -name "settings.gradle" -o -name "settings.gradle.kts" \) \
+            -printf '%h\n' \
+            | head -n 1)
+
+          if [ -z "$PROJECT" ]; then
+            echo "ERROR: Android Gradle project not found inside ZIP."
+            echo "The ZIP must contain settings.gradle or settings.gradle.kts."
+            exit 1
+          fi
+
+          echo "Android project: $PROJECT"
+
+          echo "PROJECT_DIR=$PROJECT" >> "$GITHUB_ENV"
+
+      - name: Detect Gradle
+        shell: bash
+        run: |
+          set -e
+
+          cd "$PROJECT_DIR"
+
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+            echo "Using project Gradle Wrapper."
+          else
+            echo "No Gradle Wrapper found."
+            echo "Gradle will be installed by the next step."
+          fi
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Build Debug APK
+        shell: bash
+        run: |
+          set -e
+
+          cd "$PROJECT_DIR"
+
+          if [ -x "./gradlew" ]; then
+            ./gradlew --no-daemon clean assembleDebug --stacktrace
+          else
+            gradle --no-daemon clean assembleDebug --stacktrace
+          fi
+
+      - name: Find APK
+        shell: bash
+        run: |
+          set -e
+
+          APK=$(find "$PROJECT_DIR" \
+            -type f \
+            -name "*.apk" \
+            | head -n 1)
 
           if [ -z "$APK" ]; then
             echo "ERROR: APK was not produced."
             exit 1
           fi
 
-          echo "APK: $APK"
-          echo "path=$APK" >> "$GITHUB_OUTPUT"
+          echo "APK found:"
+          ls -lh "$APK"
+
+          mkdir -p final-apk
+          cp "$APK" final-apk/FlipperMobile-debug.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: PovaTools-APK
-          path: ${{ steps.android.outputs.project }}/${{ steps.apk.outputs.path }}
+          name: FlipperMobile-debug
+          path: final-apk/FlipperMobile-debug.apk
           if-no-files-found: error
