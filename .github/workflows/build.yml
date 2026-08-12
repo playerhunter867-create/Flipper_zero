@@ -28,8 +28,17 @@ jobs:
         unzip gradle-8.2-bin.zip
         echo "$PWD/gradle-8.2/bin" >> $GITHUB_PATH
 
+    - name: Check Java version
+      run: java -version
+
+    - name: Check Gradle version
+      run: gradle --version
+
+    - name: List source files
+      run: find app/src -name "*.java" -o -name "*.xml"
+
     - name: Build Debug APK
-      run: gradle assembleDebug
+      run: gradle assembleDebug --stacktrace
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
