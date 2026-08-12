@@ -46,7 +46,6 @@
         android:textColor="#00FF00"
         android:padding="12dp"
         android:textSize="13sp"
-        android:typeface="monospace"
         android:text="Готов к работе..."/>
 
 </LinearLayout>
