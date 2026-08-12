@@ -1,0 +1,99 @@
+name: Build PovaTools APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find ZIP
+        id: find_zip
+        shell: bash
+        run: |
+          ZIP=$(find . -maxdepth 2 -type f -iname "*.zip" | head -n 1)
+
+          if [ -z "$ZIP" ]; then
+            echo "ERROR: ZIP file not found."
+            exit 1
+          fi
+
+          echo "Found: $ZIP"
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+
+      - name: Extract ZIP
+        shell: bash
+        run: |
+          mkdir -p extracted
+          unzip -q "${{ steps.find_zip.outputs.zip }}" -d extracted
+
+          echo "Extracted files:"
+          find extracted -maxdepth 3 -type f | head -100
+
+      - name: Find Android project
+        id: android
+        shell: bash
+        run: |
+          PROJECT=$(find extracted -type f -name "settings.gradle*" -printf '%h\n' | head -n 1)
+
+          if [ -z "$PROJECT" ]; then
+            echo ""
+            echo "ERROR: No Android/Gradle project found inside ZIP."
+            echo ""
+            echo "The ZIP must contain an Android project with:"
+            echo "  settings.gradle or settings.gradle.kts"
+            echo "  build.gradle or build.gradle.kts"
+            echo "  gradlew"
+            echo "  app/"
+            echo ""
+            exit 1
+          fi
+
+          echo "Android project: $PROJECT"
+          echo "project=$PROJECT" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make Gradle executable
+        working-directory: ${{ steps.android.outputs.project }}
+        run: chmod +x gradlew
+
+      - name: Build Debug APK
+        working-directory: ${{ steps.android.outputs.project }}
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Find APK
+        id: apk
+        working-directory: ${{ steps.android.outputs.project }}
+        shell: bash
+        run: |
+          APK=$(find . -type f -name "*.apk" | head -n 1)
+
+          if [ -z "$APK" ]; then
+            echo "ERROR: APK was not produced."
+            exit 1
+          fi
+
+          echo "APK: $APK"
+          echo "path=$APK" >> "$GITHUB_OUTPUT"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PovaTools-APK
+          path: ${{ steps.android.outputs.project }}/${{ steps.apk.outputs.path }}
+          if-no-files-found: error
