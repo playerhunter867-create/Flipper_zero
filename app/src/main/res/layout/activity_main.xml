@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#121212">
+
+    <EditText
+        android:id="@+id/etMac"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="MAC адрес Flipper"
+        android:textColorHint="#888888"
+        android:textColor="#FFFFFF"
+        android:background="#333333"
+        android:padding="12dp"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/btnConnect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Подключиться"
+        android:background="#4CAF50"
+        android:textColor="#FFFFFF"
+        android:padding="14dp"
+        android:layout_marginBottom="12dp"/>
+
+    <EditText
+        android:id="@+id/etCommand"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Введите команду"
+        android:textColorHint="#888888"
+        android:textColor="#FFFFFF"
+        android:background="#333333"
+        android:padding="12dp"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/btnSend"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Отправить"
+        android:background="#2196F3"
+        android:textColor="#FFFFFF"
+        android:padding="14dp"
+        android:layout_marginBottom="12dp"/>
+
+    <TextView
+        android:id="@+id/tvOutput"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#1a1a1a"
+        android:textColor="#00FF00"
+        android:padding="12dp"
+        android:textSize="13sp"
+        android:typeface="monospace"
+        android:text="Готов к работе..."/>
+
+</LinearLayout>
