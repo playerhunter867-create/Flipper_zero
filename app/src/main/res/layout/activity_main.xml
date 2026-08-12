@@ -3,17 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="#121212">
+    android:padding="16dp">
 
     <EditText
         android:id="@+id/etMac"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="MAC адрес Flipper"
-        android:textColorHint="#888888"
-        android:textColor="#FFFFFF"
-        android:background="#333333"
         android:padding="12dp"
         android:layout_marginBottom="12dp"/>
 
@@ -22,8 +18,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Подключиться"
-        android:background="#4CAF50"
-        android:textColor="#FFFFFF"
         android:padding="14dp"
         android:layout_marginBottom="12dp"/>
 
@@ -32,9 +26,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Введите команду"
-        android:textColorHint="#888888"
-        android:textColor="#FFFFFF"
-        android:background="#333333"
         android:padding="12dp"
         android:layout_marginBottom="12dp"/>
 
@@ -43,8 +34,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Отправить"
-        android:background="#2196F3"
-        android:textColor="#FFFFFF"
         android:padding="14dp"
         android:layout_marginBottom="12dp"/>
 
