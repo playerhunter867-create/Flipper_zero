@@ -2,7 +2,6 @@ package com.flipper.control;
 
 import android.content.Context;
 import android.hardware.ConsumerIrManager;
-import android.os.Build;
 import android.widget.Toast;
 
 public class IRManager {
@@ -21,37 +20,65 @@ public class IRManager {
         return irManager != null && irManager.hasIrEmitter();
     }
 
-    // Отправить IR-сигнал (частота 38 кГц, паттерн)
-    public void sendIrSignal(int[] pattern) {
+    // БАЗОВЫЙ МЕТОД ОТПРАВКИ СИГНАЛА
+    private void sendSignal(int frequency, int[] pattern) {
         if (hasIr()) {
-            irManager.transmit(38000, pattern);
+            irManager.transmit(frequency, pattern);
             Toast.makeText(context, "✅ IR-сигнал отправлен", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(context, "❌ IR-бластер недоступен", Toast.LENGTH_SHORT).show();
         }
     }
 
-    // Готовые сигналы для ТВ (вкл/выкл для популярных брендов)
-    public void sendTvPower(String brand) {
-        int[] pattern;
-        switch (brand.toLowerCase()) {
-            case "samsung":
-                pattern = new int[]{4500, 4500, 500, 1600, 500, 1600, 500, 500};
-                break;
-            case "lg":
-                pattern = new int[]{9000, 4500, 600, 1600, 600, 1600, 600, 600};
-                break;
-            case "sony":
-                pattern = new int[]{2400, 600, 1200, 600, 1200, 600, 600, 600};
-                break;
-            default:
-                pattern = new int[]{4500, 4500, 500, 1600, 500, 1600, 500, 500};
-                break;
-        }
-        sendIrSignal(pattern);
+    // ========== КОМАНДЫ ДЛЯ ТВ ==========
+
+    // ВКЛ/ВЫКЛ ТВ (Samsung)
+    public void tvPowerSamsung() {
+        int[] pattern = {4500, 4500, 500, 1600, 500, 1600, 500, 500, 500, 500, 500, 1600, 500, 500, 500, 500, 500, 500, 500, 500, 500, 1600, 500, 500, 500, 500, 500, 1600, 500, 500, 500, 500, 500, 500};
+        sendSignal(38000, pattern);
     }
 
-    // Для кондиционера (вкл/выкл)
-    public void sendAcPower() {
-        int[] pattern = {9000, 4500, 600, 1600, 600, 1600, 600, 600, 600, 600, 600, 1600};
-        sendIrSignal(pattern);
+    // ВКЛ/ВЫКЛ ТВ (LG)
+    public void tvPowerLg() {
+        int[] pattern = {9000, 4500, 600, 1600, 600, 1600, 600, 600, 600, 600, 600, 1600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 1600, 600, 600, 600, 600, 600, 1600, 600, 600, 600, 600, 600, 600};
+        sendSignal(38000, pattern);
+    }
+
+    // ГРОМКОСТЬ + (Samsung)
+    public void tvVolumeUpSamsung() {
+        int[] pattern = {4500, 4500, 500, 1600, 500, 1600, 500, 500, 500, 500, 500, 500, 500, 1600, 500, 500, 500, 1600, 500, 500, 500, 500, 500, 1600, 500, 500, 500, 500, 500, 1600, 500, 500, 500, 500};
+        sendSignal(38000, pattern);
+    }
+
+    // ГРОМКОСТЬ - (Samsung)
+    public void tvVolumeDownSamsung() {
+        int[] pattern = {4500, 4500, 500, 1600, 500, 1600, 500, 500, 500, 500, 500, 1600, 500, 500, 500, 500, 500, 500, 500, 1600, 500, 500, 500, 1600, 500, 500, 500, 500, 500, 500, 500, 1600, 500, 500};
+        sendSignal(38000, pattern);
+    }
+
+    // ========== КОМАНДЫ ДЛЯ КОНДИЦИОНЕРА ==========
+
+    // ВКЛ/ВЫКЛ кондиционера (General / Gree)
+    public void acPowerGree() {
+        int[] pattern = {9000, 4500, 600, 1600, 600, 1600, 600, 600, 600, 600, 600, 1600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 1600, 600, 600, 600, 600, 600, 1600, 600, 600, 600, 600, 600, 600};
+        sendSignal(38000, pattern);
+    }
+
+    // ТЕМПЕРАТУРА + (кондиционер)
+    public void acTempUp() {
+        int[] pattern = {9000, 4500, 600, 1600, 600, 1600, 600, 600, 600, 600, 600, 600, 600, 1600, 600, 600, 600, 1600, 600, 600, 600, 600, 600, 1600, 600, 600, 600, 600, 600, 1600, 600, 600, 600, 600};
+        sendSignal(38000, pattern);
+    }
+
+    // ТЕМПЕРАТУРА - (кондиционер)
+    public void acTempDown() {
+        int[] pattern = {9000, 4500, 600, 1600, 600, 1600, 600, 600, 600, 600, 600, 1600, 600, 600, 600, 600, 600, 600, 600, 1600, 600, 600, 600, 1600, 600, 600, 600, 600, 600, 600, 600, 1600, 600, 600};
+        sendSignal(38000, pattern);
+    }
+
+    // ========== УНИВЕРСАЛЬНЫЙ МЕТОД (для своих сигналов) ==========
+
+    public void sendCustomSignal(int[] pattern) {
+        sendSignal(38000, pattern);
     }
 }
