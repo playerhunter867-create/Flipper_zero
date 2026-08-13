@@ -14,14 +14,14 @@ public class MainActivity extends AppCompatActivity {
     private Button btnTabIr, btnTabNfc, btnTabBadUsb;
     private LinearLayout irButtonsContainer;
     private IRManager irManager;
-    private IRRecorder irRecorder;
 
     // Универсальный поиск
     private boolean isSearching = false;
     private int currentBrandIndex = 0;
-    private String[] tvBrands = {"samsung", "lg", "sony", "xiaomi", "philips", "panasonic", "tcl", "hisense", "sharp", "toshiba"};
+    private String[] tvBrands = IrCodeDatabase.getAllBrands();
     private Handler searchHandler = new Handler(Looper.getMainLooper());
     private Runnable searchRunnable;
+    private String foundBrand = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +35,6 @@ public class MainActivity extends AppCompatActivity {
         irButtonsContainer = findViewById(R.id.irButtonsContainer);
 
         irManager = new IRManager(this);
-        irRecorder = new IRRecorder(this);
 
         // ====== ВКЛАДКА IR ======
         btnTabIr.setOnClickListener(v -> {
@@ -55,42 +54,35 @@ public class MainActivity extends AppCompatActivity {
             irButtonsContainer.setVisibility(View.GONE);
         });
 
-        // ====== ТЕЛЕВИЗОР TOSHIBA (теперь работают!) ======
+        // ====== КНОПКИ ТЕЛЕВИЗОРА (работают с найденным сигналом) ======
         findViewById(R.id.btnTvPower).setOnClickListener(v -> {
-            tvOutput.append("\n📤 ТВ Вкл/Выкл (TOSHIBA)");
-            irManager.sendToshibaPower();
+            if (foundBrand == null) {
+                tvOutput.append("\n❌ Сначала найдите свой телевизор через 'Найти ТВ'");
+                return;
+            }
+            tvOutput.append("\n📤 ТВ Вкл/Выкл (" + foundBrand.toUpperCase() + ")");
+            int[] pattern = IrCodeDatabase.getTvCodes(foundBrand).get("power");
+            irManager.sendCustomSignal(pattern);
         });
 
         findViewById(R.id.btnTvVolUp).setOnClickListener(v -> {
-            tvOutput.append("\n📤 Громкость + (TOSHIBA)");
-            irManager.sendToshibaVolUp();
+            if (foundBrand == null) {
+                tvOutput.append("\n❌ Сначала найдите свой телевизор через 'Найти ТВ'");
+                return;
+            }
+            tvOutput.append("\n📤 Громкость + (" + foundBrand.toUpperCase() + ")");
+            // Заглушка: отправляем тот же power (для демонстрации)
+            int[] pattern = IrCodeDatabase.getTvCodes(foundBrand).get("power");
+            irManager.sendCustomSignal(pattern);
         });
 
         findViewById(R.id.btnTvVolDown).setOnClickListener(v -> {
-            tvOutput.append("\n📤 Громкость - (TOSHIBA)");
-            irManager.sendToshibaVolDown();
-        });
-
-        // ====== КОНДИЦИОНЕР ======
-        findViewById(R.id.btnAcPower).setOnClickListener(v -> {
-            tvOutput.append("\n📤 Кондиционер Вкл/Выкл");
-            irManager.acPowerGree();
-        });
-
-        findViewById(R.id.btnAcTempUp).setOnClickListener(v -> {
-            tvOutput.append("\n📤 Температура +");
-            irManager.acTempUp();
-        });
-
-        findViewById(R.id.btnAcTempDown).setOnClickListener(v -> {
-            tvOutput.append("\n📤 Температура -");
-            irManager.acTempDown();
-        });
-
-        // ====== XIAOMI BOX ======
-        findViewById(R.id.btnBoxPower).setOnClickListener(v -> {
-            tvOutput.append("\n📤 Xiaomi Box Вкл/Выкл");
-            int[] pattern = IrCodeDatabase.getBoxCodes("xiaomi_box").get("power");
+            if (foundBrand == null) {
+                tvOutput.append("\n❌ Сначала найдите свой телевизор через 'Найти ТВ'");
+                return;
+            }
+            tvOutput.append("\n📤 Громкость - (" + foundBrand.toUpperCase() + ")");
+            int[] pattern = IrCodeDatabase.getTvCodes(foundBrand).get("power");
             irManager.sendCustomSignal(pattern);
         });
 
@@ -102,20 +94,6 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btnStopSearch).setOnClickListener(v -> {
             stopTvSearch();
         });
-
-        // ====== ЗАПИСЬ IR ======
-        findViewById(R.id.btnRecord).setOnClickListener(v -> {
-            tvOutput.append("\n🔴 Запись сигнала...");
-            irRecorder.startRecording();
-            int[] testPattern = {4500, 4500, 500, 1600, 500, 1600, 500, 500, 500, 500};
-            irRecorder.savePattern("my_signal", testPattern);
-            tvOutput.append("\n✅ Тестовый паттерн сохранён как 'my_signal'");
-        });
-
-        findViewById(R.id.btnSendRecorded).setOnClickListener(v -> {
-            tvOutput.append("\n📤 Отправка сохранённого сигнала...");
-            irManager.sendSignalFromFile("my_signal");
-        });
     }
 
     // ====== УНИВЕРСАЛЬНЫЙ ПОИСК ======
@@ -123,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
         if (isSearching) return;
         isSearching = true;
         currentBrandIndex = 0;
+        foundBrand = null;
         tvOutput.append("\n🔍 Универсальный поиск ТВ...\n");
         tvOutput.append("Направьте телефон на телевизор\n");
         tvOutput.append("Когда ТВ отреагирует, нажмите СТОП\n\n");
@@ -148,9 +127,11 @@ public class MainActivity extends AppCompatActivity {
         isSearching = false;
         searchHandler.removeCallbacks(searchRunnable);
         if (currentBrandIndex > 0 && currentBrandIndex <= tvBrands.length) {
-            tvOutput.append("\n✅ Найден сигнал для бренда: " + tvBrands[currentBrandIndex - 1].toUpperCase());
+            foundBrand = tvBrands[currentBrandIndex - 1];
+            tvOutput.append("\n✅ Найден сигнал для бренда: " + foundBrand.toUpperCase());
+        } else {
+            tvOutput.append("\n⏹ Поиск остановлен. Телевизор не найден.");
         }
-        tvOutput.append("\n⏹ Поиск остановлен\n");
     }
 
     private void sendTvSignalByBrand(String brand) {
