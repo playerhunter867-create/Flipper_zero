@@ -3,12 +3,15 @@ package com.flipper.control;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
     private TextView tvOutput;
     private Button btnTabIr, btnTabNfc, btnTabBadUsb;
+    private LinearLayout irButtonsContainer;
+    private IRManager irManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,29 +22,74 @@ public class MainActivity extends AppCompatActivity {
         btnTabIr = findViewById(R.id.btnTabIr);
         btnTabNfc = findViewById(R.id.btnTabNfc);
         btnTabBadUsb = findViewById(R.id.btnTabBadUsb);
+        irButtonsContainer = findViewById(R.id.irButtonsContainer);
 
+        irManager = new IRManager(this);
+
+        // ====== ВКЛАДКА IR ======
         btnTabIr.setOnClickListener(v -> {
-            tvOutput.setText("📡 IR РЕЖИМ\n\n" +
-                    "1. Управление ТВ: кнопки вкл/выкл, громкость\n" +
-                    "2. Управление кондиционером: температура, режим\n" +
-                    "3. Запись сигнала с пульта\n\n" +
-                    "⚠️ Требуется IR-бластер на телефоне");
+            tvOutput.setText("📡 IR РЕЖИМ АКТИВЕН\n\n" +
+                    "Нажми кнопку для отправки сигнала:");
+
+            // Показываем кнопки IR
+            irButtonsContainer.setVisibility(View.VISIBLE);
+
+            // Скрываем другие контейнеры (если есть)
         });
 
+        // ====== ВКЛАДКА NFC ======
         btnTabNfc.setOnClickListener(v -> {
             tvOutput.setText("📱 NFC РЕЖИМ\n\n" +
-                    "1. Чтение NFC-меток (транспорт, пропуски)\n" +
-                    "2. Запись данных на чистые метки\n" +
-                    "3. Эмуляция метки (телефон как карта)\n\n" +
-                    "⚠️ Требуется NFC-модуль на телефоне");
+                    "1. Чтение NFC-меток\n" +
+                    "2. Запись данных на метки\n" +
+                    "3. Эмуляция карты\n\n" +
+                    "⚠️ Требуется NFC-модуль");
+
+            irButtonsContainer.setVisibility(View.GONE);
         });
 
+        // ====== ВКЛАДКА BADUSB ======
         btnTabBadUsb.setOnClickListener(v -> {
             tvOutput.setText("⌨️ BADUSB РЕЖИМ\n\n" +
                     "1. Эмуляция Bluetooth-клавиатуры\n" +
-                    "2. Готовые скрипты для Windows/Linux\n" +
-                    "3. Автоматизация действий на ПК\n\n" +
+                    "2. Отправка скриптов на ПК\n\n" +
                     "⚠️ Требуется Android 10+");
+
+            irButtonsContainer.setVisibility(View.GONE);
+        });
+
+        // ====== IR КНОПКИ ======
+
+        // ТВ
+        findViewById(R.id.btnTvPower).setOnClickListener(v -> {
+            tvOutput.append("\n📤 Отправка: ТВ Вкл/Выкл (Samsung)");
+            irManager.tvPowerSamsung();
+        });
+
+        findViewById(R.id.btnTvVolUp).setOnClickListener(v -> {
+            tvOutput.append("\n📤 Отправка: Громкость +");
+            irManager.tvVolumeUpSamsung();
+        });
+
+        findViewById(R.id.btnTvVolDown).setOnClickListener(v -> {
+            tvOutput.append("\n📤 Отправка: Громкость -");
+            irManager.tvVolumeDownSamsung();
+        });
+
+        // Кондиционер
+        findViewById(R.id.btnAcPower).setOnClickListener(v -> {
+            tvOutput.append("\n📤 Отправка: Кондиционер Вкл/Выкл");
+            irManager.acPowerGree();
+        });
+
+        findViewById(R.id.btnAcTempUp).setOnClickListener(v -> {
+            tvOutput.append("\n📤 Отправка: Температура +");
+            irManager.acTempUp();
+        });
+
+        findViewById(R.id.btnAcTempDown).setOnClickListener(v -> {
+            tvOutput.append("\n📤 Отправка: Температура -");
+            irManager.acTempDown();
         });
     }
 }
