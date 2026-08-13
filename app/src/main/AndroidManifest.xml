@@ -9,7 +9,7 @@
     <uses-permission android:name="android.permission.NFC" />
     <uses-feature android:name="android.hardware.nfc" android:required="false" />
 
-    <!-- Bluetooth HID (BadUSB) -->
+    <!-- Bluetooth -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
@@ -34,7 +34,16 @@
             </intent-filter>
         </activity>
 
-        <!-- ТЕСТОВАЯ АКТИВНОСТЬ (ПРОВЕРКА IR-ПОРТА) -->
+        <!-- ТЕСТ IR-ПОРТА -->
+        <activity android:name=".TestIrActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- ТЕСТ REAL (если у тебя есть) -->
         <activity android:name=".RealTest"
             android:exported="true">
             <intent-filter>
