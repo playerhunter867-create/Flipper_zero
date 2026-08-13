@@ -59,6 +59,7 @@
         android:visibility="gone"
         android:padding="8dp">
 
+        <!-- === ТЕЛЕВИЗОР === -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -105,6 +106,7 @@
 
         </LinearLayout>
 
+        <!-- === КОНДИЦИОНЕР === -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -152,6 +154,34 @@
 
         </LinearLayout>
 
+        <!-- === ТВ-ПРИСТАВКИ === -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="--- ТВ-ПРИСТАВКИ ---"
+            android:textColor="#9C27B0"
+            android:textSize="14sp"
+            android:padding="4dp"
+            android:layout_marginTop="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <Button
+                android:id="@+id/btnBoxPower"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Xiaomi Box Вкл/Выкл"
+                android:background="#9C27B0"
+                android:textColor="#FFFFFF"
+                android:layout_margin="4dp"/>
+
+        </LinearLayout>
+
     </LinearLayout>
 
     <!-- ОБЛАСТЬ ВЫВОДА -->
@@ -166,32 +196,5 @@
         android:textSize="13sp"
         android:typeface="monospace"
         android:text="Выберите вкладку: IR, NFC или BadUSB"/>
-
-</LinearLayout>
-
-        <TextView
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:text="--- ТВ-ПРИСТАВКИ ---"
-    android:textColor="#9C27B0"
-    android:textSize="14sp"
-    android:padding="4dp"
-    android:layout_marginTop="8dp"/>
-
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:weightSum="2">
-
-    <Button
-        android:id="@+id/btnBoxPower"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Xiaomi Box Вкл/Выкл"
-        android:background="#9C27B0"
-        android:textColor="#FFFFFF"
-        android:layout_margin="4dp"/>
 
 </LinearLayout>
