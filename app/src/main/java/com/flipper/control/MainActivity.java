@@ -15,13 +15,21 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout irButtonsContainer;
     private IRManager irManager;
 
-    // Универсальный поиск
-    private boolean isSearching = false;
-    private int currentBrandIndex = 0;
+    // Поиск TV
+    private boolean isSearchingTv = false;
+    private int tvIndex = 0;
     private String[] tvBrands = IrCodeDatabase.getAllBrands();
-    private Handler searchHandler = new Handler(Looper.getMainLooper());
-    private Runnable searchRunnable;
+    private Handler handler = new Handler(Looper.getMainLooper());
+    private Runnable tvRunnable;
+
+    // Поиск AC
+    private boolean isSearchingAc = false;
+    private int acIndex = 0;
+    private String[] acBrands = {"gree", "daikin", "midea", "panasonic", "lg", "samsung", "haier", "tcl", "mitsubishi"};
+    private Runnable acRunnable;
+
     private String foundBrand = null;
+    private String foundAcBrand = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,103 +46,162 @@ public class MainActivity extends AppCompatActivity {
 
         // ====== ВКЛАДКА IR ======
         btnTabIr.setOnClickListener(v -> {
-            tvOutput.setText("📡 IR РЕЖИМ АКТИВЕН\n\nНажми кнопку для отправки сигнала:");
+            tvOutput.setText("> IR MODE ACTIVE\n> SELECT SCAN:\n");
             irButtonsContainer.setVisibility(View.VISIBLE);
         });
 
-        // ====== ВКЛАДКА NFC ======
         btnTabNfc.setOnClickListener(v -> {
-            tvOutput.setText("📱 NFC РЕЖИМ\n\n1. Чтение NFC-меток\n2. Запись данных на метки\n3. Эмуляция карты\n\n⚠️ Требуется NFC-модуль");
+            tvOutput.setText("> NFC MODE\n> NOT IMPLEMENTED\n");
             irButtonsContainer.setVisibility(View.GONE);
         });
 
-        // ====== ВКЛАДКА BADUSB ======
         btnTabBadUsb.setOnClickListener(v -> {
-            tvOutput.setText("⌨️ BADUSB РЕЖИМ\n\n1. Эмуляция Bluetooth-клавиатуры\n2. Отправка скриптов на ПК\n\n⚠️ Требуется Android 10+");
+            tvOutput.setText("> BADUSB MODE\n> NOT IMPLEMENTED\n");
             irButtonsContainer.setVisibility(View.GONE);
         });
 
-        // ====== КНОПКИ ТЕЛЕВИЗОРА (работают с найденным сигналом) ======
-        findViewById(R.id.btnTvPower).setOnClickListener(v -> {
-            if (foundBrand == null) {
-                tvOutput.append("\n❌ Сначала найдите свой телевизор через 'Найти ТВ'");
-                return;
-            }
-            tvOutput.append("\n📤 ТВ Вкл/Выкл (" + foundBrand.toUpperCase() + ")");
-            int[] pattern = IrCodeDatabase.getTvCodes(foundBrand).get("power");
-            irManager.sendCustomSignal(pattern);
+        // ====== ПОИСК КОНДИЦИОНЕРОВ ======
+        findViewById(R.id.btnSearchAc).setOnClickListener(v -> {
+            startAcSearch();
         });
 
-        findViewById(R.id.btnTvVolUp).setOnClickListener(v -> {
-            if (foundBrand == null) {
-                tvOutput.append("\n❌ Сначала найдите свой телевизор через 'Найти ТВ'");
-                return;
-            }
-            tvOutput.append("\n📤 Громкость + (" + foundBrand.toUpperCase() + ")");
-            // Заглушка: отправляем тот же power (для демонстрации)
-            int[] pattern = IrCodeDatabase.getTvCodes(foundBrand).get("power");
-            irManager.sendCustomSignal(pattern);
+        findViewById(R.id.btnStopSearch).setOnClickListener(v -> {
+            stopAcSearch();
         });
 
-        findViewById(R.id.btnTvVolDown).setOnClickListener(v -> {
-            if (foundBrand == null) {
-                tvOutput.append("\n❌ Сначала найдите свой телевизор через 'Найти ТВ'");
-                return;
-            }
-            tvOutput.append("\n📤 Громкость - (" + foundBrand.toUpperCase() + ")");
-            int[] pattern = IrCodeDatabase.getTvCodes(foundBrand).get("power");
-            irManager.sendCustomSignal(pattern);
-        });
-
-        // ====== УНИВЕРСАЛЬНЫЙ ПОИСК ======
+        // ====== ПОИСК ТВ ======
         findViewById(R.id.btnSearchTv).setOnClickListener(v -> {
             startTvSearch();
         });
 
-        findViewById(R.id.btnStopSearch).setOnClickListener(v -> {
+        findViewById(R.id.btnStopSearchTv).setOnClickListener(v -> {
             stopTvSearch();
+        });
+
+        // ====== КНОПКИ УПРАВЛЕНИЯ ======
+        findViewById(R.id.btnPower).setOnClickListener(v -> {
+            if (foundAcBrand != null) {
+                tvOutput.append("\n> POWER (" + foundAcBrand.toUpperCase() + ")");
+                int[] pattern = IrCodeDatabase.getAcCodes(foundAcBrand).get("power");
+                irManager.sendCustomSignal(pattern);
+            } else if (foundBrand != null) {
+                tvOutput.append("\n> POWER (" + foundBrand.toUpperCase() + ")");
+                int[] pattern = IrCodeDatabase.getTvCodes(foundBrand).get("power");
+                irManager.sendCustomSignal(pattern);
+            } else {
+                tvOutput.append("\n> ERROR: NO DEVICE FOUND");
+            }
+        });
+
+        findViewById(R.id.btnVolUp).setOnClickListener(v -> {
+            if (foundAcBrand != null) {
+                tvOutput.append("\n> TEMP+ (" + foundAcBrand.toUpperCase() + ")");
+                int[] pattern = IrCodeDatabase.getAcCodes(foundAcBrand).get("temp_up");
+                irManager.sendCustomSignal(pattern);
+            } else if (foundBrand != null) {
+                tvOutput.append("\n> VOL+ (" + foundBrand.toUpperCase() + ")");
+                int[] pattern = IrCodeDatabase.getTvCodes(foundBrand).get("power");
+                irManager.sendCustomSignal(pattern);
+            } else {
+                tvOutput.append("\n> ERROR: NO DEVICE FOUND");
+            }
+        });
+
+        findViewById(R.id.btnVolDown).setOnClickListener(v -> {
+            if (foundAcBrand != null) {
+                tvOutput.append("\n> TEMP- (" + foundAcBrand.toUpperCase() + ")");
+                int[] pattern = IrCodeDatabase.getAcCodes(foundAcBrand).get("temp_down");
+                irManager.sendCustomSignal(pattern);
+            } else if (foundBrand != null) {
+                tvOutput.append("\n> VOL- (" + foundBrand.toUpperCase() + ")");
+                int[] pattern = IrCodeDatabase.getTvCodes(foundBrand).get("power");
+                irManager.sendCustomSignal(pattern);
+            } else {
+                tvOutput.append("\n> ERROR: NO DEVICE FOUND");
+            }
         });
     }
 
-    // ====== УНИВЕРСАЛЬНЫЙ ПОИСК ======
-    private void startTvSearch() {
-        if (isSearching) return;
-        isSearching = true;
-        currentBrandIndex = 0;
-        foundBrand = null;
-        tvOutput.append("\n🔍 Универсальный поиск ТВ...\n");
-        tvOutput.append("Направьте телефон на телевизор\n");
-        tvOutput.append("Когда ТВ отреагирует, нажмите СТОП\n\n");
+    // ====== ПОИСК КОНДИЦИОНЕРОВ ======
+    private void startAcSearch() {
+        if (isSearchingAc) return;
+        isSearchingAc = true;
+        acIndex = 0;
+        foundAcBrand = null;
+        tvOutput.append("\n> SCANNING AC UNITS...\n");
 
-        searchRunnable = new Runnable() {
+        acRunnable = new Runnable() {
             @Override
             public void run() {
-                if (!isSearching || currentBrandIndex >= tvBrands.length) {
-                    stopTvSearch();
+                if (!isSearchingAc || acIndex >= acBrands.length) {
+                    stopAcSearch();
                     return;
                 }
-                String brand = tvBrands[currentBrandIndex];
-                tvOutput.append("📤 " + brand.toUpperCase() + "... ");
-                sendTvSignalByBrand(brand);
-                currentBrandIndex++;
-                searchHandler.postDelayed(this, 800);
+                String brand = acBrands[acIndex];
+                tvOutput.append("> " + brand.toUpperCase() + "... ");
+                sendAcSignal(brand);
+                acIndex++;
+                handler.postDelayed(this, 800);
             }
         };
-        searchHandler.post(searchRunnable);
+        handler.post(acRunnable);
     }
 
-    private void stopTvSearch() {
-        isSearching = false;
-        searchHandler.removeCallbacks(searchRunnable);
-        if (currentBrandIndex > 0 && currentBrandIndex <= tvBrands.length) {
-            foundBrand = tvBrands[currentBrandIndex - 1];
-            tvOutput.append("\n✅ Найден сигнал для бренда: " + foundBrand.toUpperCase());
+    private void stopAcSearch() {
+        isSearchingAc = false;
+        handler.removeCallbacks(acRunnable);
+        if (acIndex > 0 && acIndex <= acBrands.length) {
+            foundAcBrand = acBrands[acIndex - 1];
+            tvOutput.append("\n> FOUND: " + foundAcBrand.toUpperCase());
         } else {
-            tvOutput.append("\n⏹ Поиск остановлен. Телевизор не найден.");
+            tvOutput.append("\n> SEARCH STOPPED");
         }
     }
 
-    private void sendTvSignalByBrand(String brand) {
+    private void sendAcSignal(String brand) {
+        int[] pattern = IrCodeDatabase.getAcCodes(brand).get("power");
+        if (pattern != null) {
+            irManager.sendCustomSignal(pattern);
+        }
+    }
+
+    // ====== ПОИСК ТВ ======
+    private void startTvSearch() {
+        if (isSearchingTv) return;
+        isSearchingTv = true;
+        tvIndex = 0;
+        foundBrand = null;
+        tvOutput.append("\n> SCANNING TV UNITS...\n");
+
+        tvRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!isSearchingTv || tvIndex >= tvBrands.length) {
+                    stopTvSearch();
+                    return;
+                }
+                String brand = tvBrands[tvIndex];
+                tvOutput.append("> " + brand.toUpperCase() + "... ");
+                sendTvSignal(brand);
+                tvIndex++;
+                handler.postDelayed(this, 800);
+            }
+        };
+        handler.post(tvRunnable);
+    }
+
+    private void stopTvSearch() {
+        isSearchingTv = false;
+        handler.removeCallbacks(tvRunnable);
+        if (tvIndex > 0 && tvIndex <= tvBrands.length) {
+            foundBrand = tvBrands[tvIndex - 1];
+            tvOutput.append("\n> FOUND: " + foundBrand.toUpperCase());
+        } else {
+            tvOutput.append("\n> SEARCH STOPPED");
+        }
+    }
+
+    private void sendTvSignal(String brand) {
         int[] pattern = IrCodeDatabase.getTvCodes(brand).get("power");
         if (pattern != null) {
             irManager.sendCustomSignal(pattern);
