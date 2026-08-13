@@ -55,20 +55,20 @@ public class MainActivity extends AppCompatActivity {
             irButtonsContainer.setVisibility(View.GONE);
         });
 
-        // ====== ТЕЛЕВИЗОР ======
+        // ====== ТЕЛЕВИЗОР TOSHIBA (теперь работают!) ======
         findViewById(R.id.btnTvPower).setOnClickListener(v -> {
-            tvOutput.append("\n📤 ТВ Вкл/Выкл (Samsung)");
-            irManager.tvPowerSamsung();
+            tvOutput.append("\n📤 ТВ Вкл/Выкл (TOSHIBA)");
+            irManager.sendToshibaPower();
         });
 
         findViewById(R.id.btnTvVolUp).setOnClickListener(v -> {
-            tvOutput.append("\n📤 Громкость +");
-            irManager.tvVolumeUpSamsung();
+            tvOutput.append("\n📤 Громкость + (TOSHIBA)");
+            irManager.sendToshibaVolUp();
         });
 
         findViewById(R.id.btnTvVolDown).setOnClickListener(v -> {
-            tvOutput.append("\n📤 Громкость -");
-            irManager.tvVolumeDownSamsung();
+            tvOutput.append("\n📤 Громкость - (TOSHIBA)");
+            irManager.sendToshibaVolDown();
         });
 
         // ====== КОНДИЦИОНЕР ======
@@ -101,7 +101,6 @@ public class MainActivity extends AppCompatActivity {
 
         findViewById(R.id.btnStopSearch).setOnClickListener(v -> {
             stopTvSearch();
-            tvOutput.append("\n✅ Поиск остановлен");
         });
 
         // ====== ЗАПИСЬ IR ======
