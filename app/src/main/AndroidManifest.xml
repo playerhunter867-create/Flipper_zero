@@ -15,10 +15,15 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
 
+    <!-- Хранилище для записи IR -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <application
         android:allowBackup="true"
         android:label="Flipper Android"
-        android:theme="@style/Theme.AppCompat.Dark">
+        android:theme="@style/Theme.AppCompat.Dark"
+        android:requestLegacyExternalStorage="true">
         <activity android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
