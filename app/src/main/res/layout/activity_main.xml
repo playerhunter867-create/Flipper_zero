@@ -14,7 +14,7 @@
         android:gravity="center"
         android:padding="16dp"/>
 
-    <!-- КНОПКИ ВКЛАДОК -->
+    <!-- ВКЛАДКИ -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -44,13 +44,117 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="BadUSB"
+            android:text="BADUSB"
             android:background="#2196F3"
             android:textColor="#FFFFFF"/>
 
     </LinearLayout>
 
-    <!-- ОБЛАСТЬ ДЛЯ ВЫВОДА -->
+    <!-- КНОПКИ IR (по умолчанию скрыты) -->
+    <LinearLayout
+        android:id="@+id/irButtonsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:padding="8dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="--- ТЕЛЕВИЗОР ---"
+            android:textColor="#FF9800"
+            android:textSize="14sp"
+            android:padding="4dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="3">
+
+            <Button
+                android:id="@+id/btnTvPower"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Вкл/Выкл"
+                android:background="#FF5722"
+                android:textColor="#FFFFFF"
+                android:layout_margin="4dp"/>
+
+            <Button
+                android:id="@+id/btnTvVolUp"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Громкость +"
+                android:background="#FF9800"
+                android:textColor="#FFFFFF"
+                android:layout_margin="4dp"/>
+
+            <Button
+                android:id="@+id/btnTvVolDown"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Громкость -"
+                android:background="#FFC107"
+                android:textColor="#FFFFFF"
+                android:layout_margin="4dp"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="--- КОНДИЦИОНЕР ---"
+            android:textColor="#4CAF50"
+            android:textSize="14sp"
+            android:padding="4dp"
+            android:layout_marginTop="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="3">
+
+            <Button
+                android:id="@+id/btnAcPower"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Вкл/Выкл"
+                android:background="#4CAF50"
+                android:textColor="#FFFFFF"
+                android:layout_margin="4dp"/>
+
+            <Button
+                android:id="@+id/btnAcTempUp"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Температура +"
+                android:background="#2196F3"
+                android:textColor="#FFFFFF"
+                android:layout_margin="4dp"/>
+
+            <Button
+                android:id="@+id/btnAcTempDown"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Температура -"
+                android:background="#009688"
+                android:textColor="#FFFFFF"
+                android:layout_margin="4dp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- ОБЛАСТЬ ВЫВОДА -->
     <TextView
         android:id="@+id/tvOutput"
         android:layout_width="match_parent"
