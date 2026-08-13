@@ -1,6 +1,8 @@
 package com.flipper.control;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -13,6 +15,13 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout irButtonsContainer;
     private IRManager irManager;
     private IRRecorder irRecorder;
+
+    // Универсальный поиск
+    private boolean isSearching = false;
+    private int currentBrandIndex = 0;
+    private String[] tvBrands = {"samsung", "lg", "sony", "xiaomi", "philips", "panasonic", "tcl", "hisense", "sharp", "toshiba"};
+    private Handler searchHandler = new Handler(Looper.getMainLooper());
+    private Runnable searchRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +94,16 @@ public class MainActivity extends AppCompatActivity {
             irManager.sendCustomSignal(pattern);
         });
 
+        // ====== УНИВЕРСАЛЬНЫЙ ПОИСК ======
+        findViewById(R.id.btnSearchTv).setOnClickListener(v -> {
+            startTvSearch();
+        });
+
+        findViewById(R.id.btnStopSearch).setOnClickListener(v -> {
+            stopTvSearch();
+            tvOutput.append("\n✅ Поиск остановлен");
+        });
+
         // ====== ЗАПИСЬ IR ======
         findViewById(R.id.btnRecord).setOnClickListener(v -> {
             tvOutput.append("\n🔴 Запись сигнала...");
@@ -98,5 +117,47 @@ public class MainActivity extends AppCompatActivity {
             tvOutput.append("\n📤 Отправка сохранённого сигнала...");
             irManager.sendSignalFromFile("my_signal");
         });
+    }
+
+    // ====== УНИВЕРСАЛЬНЫЙ ПОИСК ======
+    private void startTvSearch() {
+        if (isSearching) return;
+        isSearching = true;
+        currentBrandIndex = 0;
+        tvOutput.append("\n🔍 Универсальный поиск ТВ...\n");
+        tvOutput.append("Направьте телефон на телевизор\n");
+        tvOutput.append("Когда ТВ отреагирует, нажмите СТОП\n\n");
+
+        searchRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!isSearching || currentBrandIndex >= tvBrands.length) {
+                    stopTvSearch();
+                    return;
+                }
+                String brand = tvBrands[currentBrandIndex];
+                tvOutput.append("📤 " + brand.toUpperCase() + "... ");
+                sendTvSignalByBrand(brand);
+                currentBrandIndex++;
+                searchHandler.postDelayed(this, 800);
+            }
+        };
+        searchHandler.post(searchRunnable);
+    }
+
+    private void stopTvSearch() {
+        isSearching = false;
+        searchHandler.removeCallbacks(searchRunnable);
+        if (currentBrandIndex > 0 && currentBrandIndex <= tvBrands.length) {
+            tvOutput.append("\n✅ Найден сигнал для бренда: " + tvBrands[currentBrandIndex - 1].toUpperCase());
+        }
+        tvOutput.append("\n⏹ Поиск остановлен\n");
+    }
+
+    private void sendTvSignalByBrand(String brand) {
+        int[] pattern = IrCodeDatabase.getTvCodes(brand).get("power");
+        if (pattern != null) {
+            irManager.sendCustomSignal(pattern);
+        }
     }
 }
