@@ -121,3 +121,8 @@ public class IrCodeDatabase {
         return new String[]{"Gree", "Daikin", "Midea", "Panasonic", "LG", "Samsung", "Haier", "TCL", "Mitsubishi"};
     }
                                             }
+ // Для ТВ-приставок
+public void boxPowerXiaomi() {
+    int[] pattern = {3200, 1650, 420, 1250, 420, 1250, 420, 420, 420, 420, 420, 1250, 420, 420, 420, 420, 420, 420, 420, 420, 420, 1250, 420, 420, 420, 420, 420, 1250, 420, 420, 420, 420, 420, 420};
+    sendSignal(38000, pattern);
+}
